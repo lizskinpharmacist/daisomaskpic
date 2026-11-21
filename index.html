@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liz's Daiso Mask List</title>
+<meta name="description" content="11 Daiso face masks a Korean pharmacist actually buys. Show the Korean name or item number to staff, and tick them off as you go.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a phone-first shopping list. One product per card, sized so a single card fills most of a phone screen when you show it to staff. Two or three columns on wider screens. */
+:root{
+  --paper:#F1F1EC;
+  --card:#FFFFFF;
+  --ink:#151515;
+  --muted:#686862;
+  --line:#DCDCD5;
+  --tag:#FFE45C;      /* Korean discount-store price sticker */
+  --go:#1E7A4C;
+  --go-soft:#E3F2E9;
+  --sans:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.5;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+img{max-width:100%;display:block}
+button{font:inherit;color:inherit}
+
+.wrap{
+  max-width:1100px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+
+/* header */
+header{padding-block:28px 18px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+h1{font-size:clamp(28px,7vw,40px);line-height:1.1;margin:0;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+.intro{margin:12px 0 0;max-width:46ch;color:#33332f}
+.how{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.how li{font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+
+/* sticky progress bar */
+.bar{
+  position:sticky;top:0;z-index:5;background:rgba(241,241,236,.94);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.bar .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-block:10px}
+.count{font-family:var(--mono);font-weight:600;font-size:14px;white-space:nowrap;flex-basis:100%}
+@media (min-width:640px){.count{flex-basis:auto}}
+.meter{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:60px}
+.meter span{display:block;height:100%;width:0;background:var(--go);transition:width .25s ease}
+.toggle{
+  border:1px solid var(--ink);background:transparent;border-radius:999px;
+  padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;
+}
+.toggle[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+/* grid */
+.list{
+  list-style:none;margin:0;padding:20px 0 8px;
+  display:grid;gap:18px;grid-template-columns:1fr;
+}
+@media (min-width:640px){.list{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:960px){.list{grid-template-columns:repeat(3,1fr)}}
+
+.item{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  display:flex;flex-direction:column;min-width:0;
+}
+.item.hidden{display:none}
+.photo{position:relative;background:#F7F7F4;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center}
+.photo img{width:100%;height:100%;object-fit:contain;transition:opacity .2s ease}
+.num{
+  position:absolute;top:10px;left:10px;font-family:var(--mono);font-size:13px;font-weight:600;
+  background:var(--ink);color:#fff;border-radius:6px;padding:3px 8px;
+}
+.stamp{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);
+  border:3px solid var(--go);color:var(--go);font-family:var(--mono);font-weight:600;
+  font-size:22px;letter-spacing:.12em;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,.85);
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.item.found .photo img,.item.skipped .photo img{opacity:.35}
+.item.found .stamp.f{opacity:1}
+.stamp.s{border-color:var(--muted);color:var(--muted)}
+.item.skipped .stamp.s{opacity:1}
+.item.skipped .info{opacity:.6}
+
+.info{padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.ko{font-size:clamp(22px,6vw,26px);font-weight:700;line-height:1.25;margin:0;letter-spacing:-.01em;word-break:keep-all}
+.en{margin:-4px 0 0;color:var(--muted);font-size:15px}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.no{
+  font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:.04em;
+  border:1.5px solid var(--ink);border-radius:6px;padding:3px 9px;
+}
+.no small{font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--muted);margin-right:6px;text-transform:uppercase}
+.price{font-family:var(--mono);font-weight:600;font-size:15px;background:var(--tag);border-radius:4px;padding:4px 8px}
+.note{margin:2px 0 0;font-size:15px;color:#2c2c28;border-top:1px dashed var(--line);padding-top:10px}
+.note b{font-weight:500;color:var(--muted);font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.actions{margin-top:auto;display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.check,.skip{
+  width:100%;min-height:48px;border-radius:10px;cursor:pointer;
+  border:1.5px solid var(--ink);background:#fff;font-weight:700;font-size:16px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.skip{border-color:var(--line);color:var(--muted);font-weight:500}
+.skip[aria-pressed="true"]{background:#ECECE7;border-color:var(--muted);color:var(--ink);font-weight:700}
+.skip:focus-visible{outline:3px solid #2F6BFF;outline-offset:2px}
+.check .box{width:20px;height:20px;border:2px solid currentColor;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
+.check[aria-pressed="true"]{background:var(--go-soft);border-color:var(--go);color:var(--go)}
+.check[aria-pressed="true"] .box::after{content:"";width:6px;height:11px;border:solid currentColor;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.check:focus-visible,.toggle:focus-visible{outline:3px solid #2F6BFF;outline-offset:2px}
+
+.empty{display:none;text-align:center;color:var(--muted);padding:30px 0}
+.empty.show{display:block}
+
+/* phrases */
+.phrases{margin:18px 0 0;padding:20px 0 8px;border-top:1px solid var(--line)}
+.phrases h2{font-size:20px;margin:0 0 4px}
+.phrases p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.ph{list-style:none;margin:0;padding:0;display:grid;gap:10px;grid-template-columns:1fr}
+@media (min-width:640px){.ph{grid-template-columns:repeat(2,1fr)}}
+.ph li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.ph .k{font-size:22px;font-weight:700;display:block;word-break:keep-all}
+.ph .e{color:var(--muted);font-size:14px}
+
+footer{padding-block:24px 40px;color:var(--muted);font-size:13px}
+footer p{margin:0 0 6px;max-width:62ch}
+.reset{background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;color:var(--muted);font-size:13px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <p class="kicker">Daiso · Face masks · Nov 2026</p>
+  <h1>Liz's Daiso Mask List</h1>
+  <p class="intro">The 11 masks I actually buy as a pharmacist living in Korea. Daiso gets packed, so tick each one off as you go.</p>
+  <ul class="how">
+    <li>Show staff the Korean name</li>
+    <li>Or read them the item number</li>
+    <li>Tap "Found it" or "Skip"</li>
+  </ul>
+</header>
+
+<div class="bar" role="region" aria-label="Progress">
+  <div class="wrap">
+    <span class="count" id="count">11 to go</span>
+    <div class="meter" aria-hidden="true"><span id="meter"></span></div>
+    <button class="toggle" id="toggle" type="button" aria-pressed="false">Hide done</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <ol class="list" id="list"></ol>
+  <p class="empty" id="empty">All done. Enjoy your haul.</p>
+
+  <section class="phrases" aria-labelledby="ph-title">
+    <h2 id="ph-title">Show this to staff</h2>
+    <p>Point at a line, or just hold up your phone.</p>
+    <ul class="ph">
+      <li><span class="k">이 제품 어디 있어요?</span><span class="e">Where can I find this?</span></li>
+      <li><span class="k">이거 품절이에요?</span><span class="e">Is this sold out?</span></li>
+      <li><span class="k">마스크팩 어디 있어요?</span><span class="e">Where are the face masks?</span></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Prices and item numbers from Daiso Mall, November 2026. Stock changes by store, and popular masks sell out fast.</p>
+  <p>Personal picks by Liz (@liz.skinpharmacist). Not affiliated with Daiso. Patch test anything new, especially retinol.</p>
+  <p><button class="reset" id="reset" type="button">Start over</button></p>
+</footer>
+
+<script>
+const ITEMS = [
+  {no:"1014786", ko:"너리싱 호일 마스크 골드", en:"Nourishing Foil Mask (Gold)", price:"₩1,000",
+   note:"Three layers with foil on the outside, so nothing evaporates while it's on. This one is for fine lines. Get Blooming too."},
+  {no:"1014785", ko:"블루밍 호일 마스크 실버", en:"Blooming Foil Mask (Silver)", price:"₩1,000",
+   note:"Same foil seal, made for brightening. If you see both, grab both."},
+  {no:"1061923", ko:"본셉 비타씨 앰플 아이 겔 패치", en:"Boncept Vita C Ampoule Eye Gel Patch (12)", price:"₩3,000",
+   note:"I was surprised how much is in a tiny patch: vitamin C, bakuchiol, adenosine. Stock up if you're outdoors a lot."},
+  {no:"1054672", ko:"본셉 레티놀 세럼 마스크", en:"Boncept Retinol Serum Mask", price:"₩1,000",
+   note:"The retinol is low, but the rest is great: ceramides, squalane, panthenol, bakuchiol. Smooth on the extra serum first."},
+  {no:"1075857", ko:"셀더마데일리 PDRN 광채 크림 랩핑 마스크", en:"Cellderma Daily PDRN Glow Cream Wrapping Mask", price:"₩2,000",
+   note:"I've never seen a sheet like this. Cream-coated inside, silky outside, so your hair won't stick to it."},
+  {no:"1049285", ko:"VT 슈퍼 히알론 슬리핑 마스크", en:"VT Super Hyalon Sleeping Mask (4 ml × 6)", price:"₩3,000",
+   note:"Eight types of hyaluronic acid plus PGA. Tiny sachets that fit in your purse. Put one on during your flight home."},
+  {no:"1059832", ko:"셀더마데일리 아줄렌 카밍 마스크", en:"Cellderma Daily Azulene Calming Mask", price:"₩2,000",
+   note:"Azulene 500 ppm with a cooling feel. Perfect after a long day in the sun. It sells out, so grab it if you see it."},
+  {no:"1067499", ko:"VT PDRN 광채 시트 마스크", en:"VT PDRN Glow Sheet Mask", price:"₩1,000",
+   note:"An easy PDRN sheet mask to try for just 1,000 won."},
+  {no:"1058210", ko:"제이엠솔루션 B5 히아 하이드로겔 마스크", en:"JMsolution B5 Hya Hydrogel Mask", price:"₩2,000",
+   note:"Panthenol plus ceramides, cholesterol and fatty acids, and the hydrogel really clings. Great for dry fall and winter skin."},
+  {no:"1061530", ko:"바이 리얼베리어 세라베이스 모이스처라이징 크림마스크", en:"Real Barrier Cerabase Moisturizing Cream Mask", price:"₩1,000",
+   note:"Ten types of hyaluronic acid plus barrier lipids, at solid levels. The sheet itself is just okay."},
+  {no:"1059095", ko:"미모 바이 마몽드 로지-히알론 리퀴드 마스크", en:"mimo by Mamonde Rosy-Hyalon Liquid Mask (2 ml × 6)", price:"₩3,000",
+   note:"Five types of hyaluronic acid. This whole line is worth a look."}
+];
+
+const KEY = "liz-daiso-masks-v1";
+/* state per item: "found" | "skip" (absent = still looking). Older saves stored true for found. */
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+for (const k in state) { if (state[k] === true) state[k] = "found"; }
+let hideDone = false;
+
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function setState(no, v){
+  const on = state[no] !== v;
+  if (on) state[no] = v; else delete state[no];
+  save(); render();
+  if (on) goNext(no);
+}
+/* after marking an item, glide to the next one still left to find */
+function goNext(no){
+  const items = [...list.querySelectorAll(".item")];
+  const i = items.findIndex(li => li.dataset.no === no);
+  const next = items.slice(i + 1).find(li => !state[li.dataset.no]) || items.find(li => !state[li.dataset.no]);
+  if (!next) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(() => {
+    const barH = document.querySelector(".bar").offsetHeight;
+    const y = next.getBoundingClientRect().top + window.scrollY - barH - 12;
+    window.scrollTo({ top: y, behavior: reduce ? "auto" : "smooth" });
+  }, 250);
+}
+
+const list = document.getElementById("list");
+ITEMS.forEach((it, i) => {
+  const li = document.createElement("li");
+  li.className = "item";
+  li.dataset.no = it.no;
+  li.innerHTML = `
+    <div class="photo">
+      <span class="num">${String(i + 1).padStart(2, "0")}</span>
+      <img src="img/${it.no}.jpg" alt="${it.en} package" loading="${i < 2 ? "eager" : "lazy"}" width="466" height="600">
+      <span class="stamp f" aria-hidden="true">FOUND</span>
+      <span class="stamp s" aria-hidden="true">SKIP</span>
+    </div>
+    <div class="info">
+      <h2 class="ko" lang="ko">${it.ko}</h2>
+      <p class="en">${it.en}</p>
+      <div class="meta">
+        <span class="no"><small>Item no.</small>${it.no}</span>
+        <span class="price">${it.price}</span>
+      </div>
+      <p class="note"><b>Liz says</b>${it.note}</p>
+      <div class="actions">
+        <button class="check" type="button" aria-pressed="false" id="chk-${it.no}">
+          <span class="box" aria-hidden="true"></span><span class="lbl">Found it</span>
+        </button>
+        <button class="skip" type="button" aria-pressed="false" id="skp-${it.no}">Skip</button>
+      </div>
+    </div>`;
+  li.querySelector(".check").addEventListener("click", () => setState(it.no, "found"));
+  li.querySelector(".skip").addEventListener("click", () => setState(it.no, "skip"));
+  list.appendChild(li);
+});
+
+function render(){
+  let f = 0, s = 0;
+  list.querySelectorAll(".item").forEach(li => {
+    const v = state[li.dataset.no];
+    if (v === "found") f++;
+    if (v === "skip") s++;
+    li.classList.toggle("found", v === "found");
+    li.classList.toggle("skipped", v === "skip");
+    li.classList.toggle("hidden", hideDone && !!v);
+    const b = li.querySelector(".check");
+    b.setAttribute("aria-pressed", v === "found" ? "true" : "false");
+    b.querySelector(".lbl").textContent = v === "found" ? "Found" : "Found it";
+    const k = li.querySelector(".skip");
+    k.setAttribute("aria-pressed", v === "skip" ? "true" : "false");
+    k.textContent = v === "skip" ? "Skipped" : "Skip";
+  });
+  const left = ITEMS.length - f - s;
+  const parts = [];
+  if (f) parts.push(`${f} found`);
+  if (s) parts.push(`${s} skipped`);
+  parts.push(left ? `${left} to go` : "done");
+  document.getElementById("count").textContent = parts.join(" · ");
+  document.getElementById("meter").style.width = ((f + s) / ITEMS.length * 100) + "%";
+  document.getElementById("empty").classList.toggle("show", hideDone && left === 0);
+}
+
+document.getElementById("toggle").addEventListener("click", e => {
+  hideDone = !hideDone;
+  e.currentTarget.setAttribute("aria-pressed", hideDone ? "true" : "false");
+  e.currentTarget.textContent = hideDone ? "Show all" : "Hide done";
+  render();
+});
+document.getElementById("reset").addEventListener("click", () => { state = {}; save(); render(); });
+
+render();
+</script>
+</body>
+</html>
